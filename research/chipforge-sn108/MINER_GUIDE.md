@@ -6,6 +6,24 @@
 
 ---
 
+## Ảnh chụp leaderboard ngày 13/10/2026 (từ ảnh người dùng gửi)
+
+| Mục | Giá trị |
+|---|---|
+| Challenge | **"NPU with Kernels optimized for 4 AI models"** (challenge 15) |
+| Thời gian còn lại | 7 ngày 2 giờ · 96 bài nộp · 41 miner |
+| Score to beat | **2058.31**; bài mới phải **> 2161.23**, tức biên độ **+5%** (không phải 20% như fallback trong `.env.example`) |
+| Winner hiện tại | UID 124 (5CXEM…VhJa), thắng 13 giờ trước, **còn 10 giờ 57 phút** được thưởng (cửa sổ khoảng 24 giờ) |
+| Top 5 | 2058.31 (UID 124) · 1933.37 (UID 139, past winner) · 1914.42 (UID 124) · 1817.91 (UID 145) · 1812.84 (UID 142) |
+| On-chain | "UID 124 leads · **0% of validator stake agrees**" |
+
+Cách đọc nhanh:
+- **Cần tăng bao nhiêu để vượt 5%?** Vì `FoM ∝ IPS_gain^0.7 / area^0.3`, muốn tăng 5% điểm thì cần **+7.2% IPS_gain** (giữ nguyên diện tích), **hoặc −15% diện tích** (giữ nguyên hiệu năng), hoặc kết hợp cả hai. Từ hạng 2 (1933) lên tới 2161 cần khoảng **+11.8%** điểm, tương đương khoảng +17% IPS_gain.
+- **Hết cửa sổ thưởng của UID 124 mà không ai vượt 2161.23** thì validator burn 100%. Ngưỡng vẫn giữ nguyên, nên không ai được trả cho tới khi có người vượt.
+- **"0% of validator stake agrees"** là dấu hiệu đỏ. Nó cho thấy chưa validator nào (tính theo stake) đang đặt trọng số cho UID 124 trên chain. Có thể do validator chưa chạy code mới, đang burn, hoặc trễ vì rate limit. Nếu tình trạng này kéo dài, **thắng trên leaderboard không đồng nghĩa với có tiền**. Hãy kiểm tra incentive của UID 124 trên taostats trước khi đầu tư nhiều công sức.
+
+---
+
 ## 0. Đọc trước khi bỏ tiền đăng ký UID
 
 Miner ở SN108 **không giống** miner ở phần lớn các subnet khác:
