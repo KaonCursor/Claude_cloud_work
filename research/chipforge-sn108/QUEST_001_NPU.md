@@ -96,3 +96,14 @@ Năm điều rút ra từ công thức:
 4. **Ngày 1–5 — tối ưu bản đã reveal:** đo `per_model.cycles_per_inference` để tìm model đang kéo geomean xuống. Nhắm vào: dwconv của mobilenet, chuỗi layer của ds_cnn, việc stream weight của ad_fcae, overhead cấu hình, và chồng lấp DMA với tính toán. Cần đạt **≥ +7.2% speedup** so với winner; nên nhắm **+12–15%** để có biên an toàn (cycle dao động ±2% theo seed, cộng thêm khoảng 1.2% jitter).
 5. **Ngày 5–6 — kiểm tra lại:** chạy nhiều seed và chạy các model audit. Kiểm tra `axi_protocol_errors = 0` và `result: ACCEPTED` trong một lần chạy đầy đủ. Mỗi lần chấm phải dưới 45 phút.
 6. **Ngày 6 — nộp**, còn dư thời gian trước giờ đóng. Đề cũng nói biên độ cải thiện **có thể thay đổi**, nên hãy xem lại trên leaderboard trước khi nộp.
+
+## 7. Luật chính thức (tab Rules) và thời điểm đăng ký / nộp bài
+
+Luật chính thức: winner được thưởng **24 giờ hoặc cho tới khi bị vượt**; nhận **10%** trọng số, phần còn lại burn vào UID 0. Từ winner thứ hai, bài mới phải hơn **5%**. Quest dài **336 giờ**. Mỗi hotkey nộp tối đa **5 bài**, mỗi bài ≤ 50 MB. Mỗi batch có tối đa 8 bài, validator có **5 phút** để tải và **50 phút** để chấm. Bài lỗi được re-batch tối đa 3 lần. **Mỗi bài chỉ có 1 validator chấm**, và mỗi validator tự chọn winner từ kết quả chấm của chính nó.
+
+Hệ quả:
+- **Thời gian giữ ngôi thực tế ngắn hơn 24 giờ.** 19 winner trong khoảng 170 giờ đầu, tức trung bình khoảng 9 giờ mỗi người.
+- **Thắng gần cuối quest là có lợi nhất.** Sau khi quest đóng, không ai nộp bài để vượt bạn được nữa, nên bạn ăn trọn 24 giờ. Thiết kế của bạn cũng chỉ bị reveal muộn, và bạn không đẩy mốc điểm lên sớm cho đối thủ.
+- **Rủi ro cấu trúc ⚠️:** mỗi bài chỉ có 1 validator chấm, và validator chỉ đặt trọng số cho winner nằm trong số bài *nó* đã chấm. Vì vậy winner chỉ được 1/5 validator ủng hộ, và Yuma consensus có thể cắt phần lớn trọng số đó. Điều này khớp với dòng "0% of validator stake agrees". Hãy kiểm tra incentive thực tế của UID 124 trên taostats trước khi bỏ công sức.
+- **Đăng ký sớm:** `reveal-download` (tải thiết kế thắng cuộc) đòi hỏi **hotkey đã đăng ký**. Phí chỉ 0.05 TAO, và subnet mới có 157 neuron, nên nhiều khả năng chưa đầy slot ⚠️ (kiểm tra `max_allowed_uids`).
+- **Nộp bài khoảng 6–12 giờ trước khi quest đóng (20/10, 20:07)**, khi điểm local đã vượt mốc hiện tại ≥ 12%. Không nên sát giờ hơn: một vòng batch mất khoảng 1 giờ, có thể bị re-batch, và có thể có hàng đợi. Nếu thấy có người nộp bài vượt quá xa so với điểm local của bạn thì cân nhắc nộp sớm hơn.
