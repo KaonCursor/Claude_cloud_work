@@ -245,6 +245,13 @@ Hệ quả chiến thuật:
   - `area_scope = npu_only` ⚠️: diện tích được tính cho riêng accelerator, nhưng không thấp hơn `area_floor_um2`. Vì vậy **tối ưu bằng phần mềm (kernel CPU) mà không dùng silicon sẽ không ăn điểm**.
   - α = 0.7 > β = 0.3, nghĩa là **hiệu năng quan trọng hơn diện tích nhiều**. Tăng gấp đôi IPS_gain được ×1.62 điểm; giảm một nửa diện tích chỉ được ×1.23.
 - **Số tham chiếu từ code:** thiết kế mẫu 16×16 có khoảng **4.99 triệu µm², 57.94 MHz, speedup 1.949× (chưa qua gate 2×)**, và mất khoảng 18–25 phút synthesis. Nói cách khác, chính thiết kế tham chiếu của đội ngũ còn trượt gate. Để vượt cần: tăng fmax (pipeline datapath MAC), tăng mức tái sử dụng dữ liệu, và kernel tận dụng accelerator cho **mọi** model (geomean nên một model chậm sẽ kéo cả điểm xuống).
+- Thông tin thêm từ commit của [PR #4 trên EDA server](https://github.com/TatsuProject/chipforge_eda_server/pull/4) (merge ngày 01/10/2026):
+  - File thiết kế accelerator là `npu.sv`, các biến môi trường mang tiền tố `NPUV1_`.
+  - Bộ chấm gồm **"the scored four"**, tức 4 model được tính điểm. Ví dụ trong commit là một bài kiểu conv-accel.
+  - Có một bài mẫu được ghi nhận **ACCEPTED với speedup 4.25× và 1 734 287 µm²**. Mức này cho thấy hoàn toàn có thể vượt gate 2×.
+  - `dummy_sol_2` chỉ đạt 1.92× và bị loại.
+  - Phiên bản công cụ: Verilator `1264184fb` (5.046+55), trình biên dịch kernel xPack `riscv-none-elf-gcc 14.2.0`.
+  - Challenge 0014 trước đó dùng cách tính tuyến tính kiểu cũ.
 - Điểm `overall` được báo **ngay cả khi trượt gate**, để bạn biết mình còn cách bao xa. Chỉ `overall_gated` (bằng 0 nếu trượt) mới được dùng để xét thắng.
 - Đề này **nặng**: mỗi lần chấm local có thể mất 20–40 phút. Hãy làm vòng lặp nhanh bằng mô phỏng riêng, và chỉ chạy synthesis khi đã chắc chắn về chức năng. Đặc biệt chú ý **giới hạn 45 phút**.
 
