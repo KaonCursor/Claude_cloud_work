@@ -1,0 +1,250 @@
+<title>ChipForge NPU SoC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: one reading column of three engineering figures, each with a caption; schematic look, accent = the miner's NPU */
+:root{
+  --bg:#f5f6f2; --surface:#ffffff; --fg:#1d2420; --muted:#5f6b64; --line:#9aa59e;
+  --accent:#2f8a4e; --accent-bg:#e3f2e7; --warn:#b4632a;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111613; --surface:#1a211d; --fg:#e4ebe6; --muted:#97a59c; --line:#4a564f;
+  --accent:#5cc77f; --accent-bg:#183323; --warn:#e0965c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111613; --surface:#1a211d; --fg:#e4ebe6; --muted:#97a59c; --line:#4a564f;
+  --accent:#5cc77f; --accent-bg:#183323; --warn:#e0965c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.55}
+.wrap{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:28px 48px}
+h1{font-size:26px;margin:0 0 6px;text-wrap:balance}
+.lede{color:var(--muted);max-width:68ch;margin:0 0 28px}
+h2{font-size:17px;margin:36px 0 10px;text-wrap:balance}
+figure{margin:0;display:grid;gap:10px}
+.scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}
+svg{display:block;width:100%;min-width:720px;height:auto;color:var(--fg);font-family:var(--sans)}
+figcaption{color:var(--muted);font-size:14px;max-width:80ch}
+code{font-family:var(--mono);font-size:.92em}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0 0 8px;padding:0;list-style:none}
+.facts li{border-top:2px solid var(--line);padding-top:8px;font-size:14px;min-width:0}
+.facts b{display:block;font-family:var(--mono);font-size:16px;font-variant-numeric:tabular-nums}
+/* svg parts */
+.box{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.npu{fill:var(--accent-bg);stroke:var(--accent);stroke-width:1.8}
+.ghost{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
+.frame{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:7 5}
+.bar{fill:var(--bg);stroke:var(--line);stroke-width:1.2}
+.ln{stroke:var(--fg);stroke-width:1.4;fill:none}
+.ln.acc{stroke:var(--accent);stroke-width:2}
+.ln.dim{stroke:var(--muted);stroke-dasharray:5 4}
+.mk{fill:var(--fg)} .mk.acc{fill:var(--accent)} .mk.dim{fill:var(--muted)}
+.t{font-size:13px;font-weight:600;fill:var(--fg)}
+.s{font-size:11.5px;fill:var(--muted)}
+.m{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.a{font-size:11.5px;fill:var(--accent);font-weight:600}
+.w{font-size:11.5px;fill:var(--warn);font-weight:600}
+.h{font-size:14px;font-weight:700;fill:var(--fg)}
+</style>
+
+<div class="wrap">
+  <h1>ChipForge NPU SoC</h1>
+  <p class="lede">Chip mà evaluator của <code>npu_challenge_001</code> lắp NPU của bạn vào, đọc từ <code>npu_soc_top.sv</code>, <code>axi_sram_dp.sv</code>, <code>mem2axi.sv</code> và <code>main.c</code>. Màu xanh là phần bạn thiết kế và bị tính diện tích; mọi thứ còn lại do evaluator cấp, giống nhau cho mọi miner.</p>
+
+  <ul class="facts">
+    <li><b>62.89 MHz</b>trần tần số được chấm</li>
+    <li><b>16 B / chu kỳ</b>DMA qua cổng B, một burst đọc mỗi lúc</li>
+    <li><b>1 000 000 µm²</b>diện tích "miễn phí" (sàn của mẫu số)</li>
+    <li><b>190 713 µm²</b>một macro SRAM 1 KB</li>
+  </ul>
+
+  <h2>1. Topology: NPU nằm ở đâu</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 500" role="img" aria-label="CPU truy cập DTCM trực tiếp và DRAM qua mem2axi và crossbar trên cổng A; crossbar cũng đưa CPU tới cổng slave của NPU; NPU có cổng master riêng tới cổng B của DRAM.">
+      <defs>
+        <marker id="f1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk"/></marker>
+        <marker id="f1x" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk acc"/></marker>
+      </defs>
+      <rect class="frame" x="8" y="8" width="944" height="484" rx="10"/>
+      <text class="s" x="24" y="480">npu_soc_top: evaluator cung cấp, không tính diện tích</text>
+
+      <rect class="box" x="30" y="40" width="150" height="60" rx="6"/>
+      <text class="t" x="105" y="65" text-anchor="middle">ITCM 48 KB</text>
+      <text class="s" x="105" y="84" text-anchor="middle">.text · chỉ fetch lệnh</text>
+
+      <rect class="box" x="240" y="40" width="200" height="60" rx="6"/>
+      <text class="t" x="340" y="65" text-anchor="middle">CPU rv32imc</text>
+      <text class="s" x="340" y="84" text-anchor="middle">5 tầng · in-order · không ngắt</text>
+
+      <line class="ln" x1="180" y1="70" x2="238" y2="70" marker-end="url(#f1)"/>
+      <text class="s" x="209" y="62" text-anchor="middle">lệnh</text>
+
+      <rect class="box" x="30" y="170" width="150" height="60" rx="6"/>
+      <text class="t" x="105" y="195" text-anchor="middle">DTCM 64 KB</text>
+      <text class="s" x="105" y="214" text-anchor="middle">stack · biến static</text>
+
+      <polyline class="ln" points="280,100 280,200 182,200" marker-end="url(#f1)"/>
+      <text class="m" x="288" y="150">0x8080_xxxx</text>
+      <text class="s" x="288" y="165">1 chu kỳ</text>
+
+      <rect class="box" x="240" y="280" width="200" height="60" rx="6"/>
+      <text class="t" x="340" y="305" text-anchor="middle">mem2axi</text>
+      <text class="s" x="340" y="324" text-anchor="middle">1 load/store = 1 giao dịch AXI</text>
+
+      <line class="ln" x1="400" y1="100" x2="400" y2="278" marker-end="url(#f1)"/>
+      <text class="s" x="408" y="195">địa chỉ khác</text>
+
+      <rect class="box" x="500" y="280" width="160" height="60" rx="6"/>
+      <text class="t" x="580" y="305" text-anchor="middle">axi_xbar</text>
+      <text class="s" x="580" y="324" text-anchor="middle">1 master → 2 slave</text>
+
+      <line class="ln" x1="440" y1="310" x2="498" y2="310" marker-end="url(#f1)"/>
+      <text class="m" x="469" y="300" text-anchor="middle">128b</text>
+
+      <rect class="box" x="720" y="40" width="220" height="200" rx="6"/>
+      <text class="t" x="830" y="66" text-anchor="middle">DRAM 1 MB</text>
+      <text class="m" x="830" y="84" text-anchor="middle">axi_sram_dp · 2 cổng</text>
+      <text class="s" x="830" y="118" text-anchor="middle">weights · bias · mult/shift</text>
+      <text class="s" x="830" y="137" text-anchor="middle">activations NHWC int8</text>
+      <text class="s" x="830" y="156" text-anchor="middle">input / output mỗi ảnh</text>
+      <text class="s" x="830" y="175" text-anchor="middle">1 KB đầu: vùng của harness</text>
+      <text class="m" x="728" y="104">A</text>
+      <text class="m" x="838" y="232">B</text>
+
+      <polyline class="ln" points="660,300 690,300 690,100 718,100" marker-end="url(#f1)"/>
+      <text class="m" x="682" y="182" text-anchor="end">0x8040_0000</text>
+      <text class="s" x="682" y="197" text-anchor="end">cổng A</text>
+
+      <rect class="npu" x="480" y="390" width="300" height="90" rx="6"/>
+      <text class="t" x="630" y="414" text-anchor="middle">npu: thiết kế của bạn</text>
+      <text class="s" x="630" y="440" text-anchor="middle">s_* slave: thanh ghi cấu hình / trạng thái</text>
+      <text class="s" x="630" y="460" text-anchor="middle">m_* master: DMA 128-bit</text>
+
+      <line class="ln" x1="580" y1="340" x2="580" y2="388" marker-end="url(#f1)"/>
+      <text class="m" x="588" y="362">0x3000_0000</text>
+      <text class="s" x="680" y="362">ghi cấu hình · poll</text>
+
+      <polyline class="ln acc" points="782,435 840,435 840,242" marker-start="url(#f1x)" marker-end="url(#f1x)"/>
+      <text class="a" x="848" y="330">cổng B</text>
+      <text class="s" x="848" y="346">16 B/chu kỳ</text>
+      <text class="s" x="848" y="362">chỉ NPU dùng</text>
+    </svg>
+    </div>
+    <figcaption>CPU đọc DTCM trong 1 chu kỳ, nhưng mỗi lần chạm DRAM là một giao dịch AXI riêng qua <code>mem2axi</code>. NPU không thấy DTCM; mọi buffer NPU cần phải nằm trong DRAM (khai báo <code>SHARED</code>). Cổng B là đường riêng của NPU, không tranh chấp với CPU.</figcaption>
+  </figure>
+
+  <h2>2. Khác biệt giữa template và một bài thắng</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 280" role="img" aria-label="Template: CPU tự làm mọi phép tính bằng load/store từng word tới DRAM, NPU trơ. Thiết kế tăng tốc: CPU chỉ ghi descriptor và poll, NPU dùng DMA burst qua cổng B.">
+      <defs>
+        <marker id="f2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk"/></marker>
+        <marker id="f2x" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk acc"/></marker>
+        <marker id="f2d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk dim"/></marker>
+      </defs>
+      <line x1="480" y1="12" x2="480" y2="268" class="ln dim"/>
+
+      <text class="h" x="20" y="30">Template stub · 1.0×</text>
+      <rect class="box" x="20" y="50" width="150" height="56" rx="6"/>
+      <text class="t" x="95" y="74" text-anchor="middle">CPU</text>
+      <text class="s" x="95" y="93" text-anchor="middle">tự tính mọi MAC</text>
+      <rect class="box" x="320" y="50" width="140" height="200" rx="6"/>
+      <text class="t" x="390" y="74" text-anchor="middle">DRAM</text>
+      <text class="s" x="390" y="93" text-anchor="middle">weights · activations</text>
+      <line class="ln" x1="170" y1="80" x2="318" y2="80" marker-start="url(#f2)" marker-end="url(#f2)"/>
+      <text class="s" x="244" y="70" text-anchor="middle">load/store từng word</text>
+      <text class="w" x="244" y="100" text-anchor="middle">20–32 chu kỳ / MAC</text>
+      <rect class="ghost" x="20" y="190" width="200" height="60" rx="6"/>
+      <text class="t" x="120" y="214" text-anchor="middle">npu_stub</text>
+      <text class="s" x="120" y="233" text-anchor="middle">trả OKAY · master tắt</text>
+      <line class="ln dim" x1="95" y1="106" x2="95" y2="188" marker-end="url(#f2d)"/>
+      <text class="s" x="103" y="152">không dùng</text>
+
+      <text class="h" x="500" y="30">Bài tăng tốc · ~1 300× (winner)</text>
+      <rect class="box" x="500" y="50" width="150" height="56" rx="6"/>
+      <text class="t" x="575" y="74" text-anchor="middle">CPU</text>
+      <text class="s" x="575" y="93" text-anchor="middle">chỉ cấu hình + chờ</text>
+      <rect class="box" x="810" y="50" width="140" height="200" rx="6"/>
+      <text class="t" x="880" y="74" text-anchor="middle">DRAM</text>
+      <text class="s" x="880" y="93" text-anchor="middle">weights · activations</text>
+      <line class="ln dim" x1="650" y1="80" x2="808" y2="80" marker-end="url(#f2d)"/>
+      <text class="s" x="729" y="70" text-anchor="middle">copy input/output</text>
+      <text class="s" x="729" y="100" text-anchor="middle">(harness, ai cũng như nhau)</text>
+      <rect class="npu" x="500" y="190" width="200" height="60" rx="6"/>
+      <text class="t" x="600" y="214" text-anchor="middle">npu</text>
+      <text class="s" x="600" y="233" text-anchor="middle">mảng MAC + DMA</text>
+      <line class="ln acc" x1="575" y1="106" x2="575" y2="188" marker-end="url(#f2x)"/>
+      <text class="m" x="583" y="140">descriptor → 0x3000_0000</text>
+      <text class="s" x="583" y="156">rồi poll trạng thái</text>
+      <line class="ln acc" x1="700" y1="220" x2="808" y2="220" marker-start="url(#f2x)" marker-end="url(#f2x)"/>
+      <text class="a" x="754" y="210" text-anchor="middle">DMA burst</text>
+      <text class="s" x="754" y="240" text-anchor="middle">cổng B, ≤256 beat</text>
+    </svg>
+    </div>
+    <figcaption>Speedup đến từ việc dời đường dữ liệu: bỏ hàng triệu giao dịch AXI đơn lẻ của CPU, thay bằng DMA burst trên cổng riêng. Ở mức trên 1 000×, CPU gần như chỉ ghi chuỗi descriptor cho cả mạng một lần rồi chờ.</figcaption>
+  </figure>
+
+  <h2>3. Bên trong NPU cần xây</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 340" role="img" aria-label="Pipeline NPU: thanh ghi slave, FSM tuần tự layer, DMA đọc từ DRAM, buffer, mảng MAC, epilogue requantize, buffer ra, DMA ghi về DRAM.">
+      <defs>
+        <marker id="f3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk"/></marker>
+        <marker id="f3x" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk acc"/></marker>
+      </defs>
+      <rect class="npu" x="4" y="22" width="952" height="222" rx="8" style="fill:none"/>
+      <text class="a" x="16" y="16">module npu (tính diện tích)</text>
+
+      <rect class="box" x="16" y="40" width="160" height="64" rx="6"/>
+      <text class="t" x="96" y="66" text-anchor="middle">s_* slave</text>
+      <text class="s" x="96" y="86" text-anchor="middle">thanh ghi + descriptor</text>
+
+      <rect class="box" x="204" y="40" width="150" height="64" rx="6"/>
+      <text class="t" x="279" y="66" text-anchor="middle">Sequencer FSM</text>
+      <text class="s" x="279" y="86" text-anchor="middle">chạy danh sách layer</text>
+
+      <rect class="box" x="382" y="40" width="150" height="184" rx="6"/>
+      <text class="t" x="457" y="66" text-anchor="middle">DMA (m_*)</text>
+      <text class="s" x="457" y="86" text-anchor="middle">AR/R: đọc burst</text>
+      <text class="s" x="457" y="102" text-anchor="middle">prefetch layer sau</text>
+      <text class="s" x="457" y="188" text-anchor="middle">AW/W: ghi burst</text>
+      <text class="s" x="457" y="206" text-anchor="middle">ranh giới 4 KB</text>
+
+      <rect class="box" x="560" y="40" width="150" height="64" rx="6"/>
+      <text class="t" x="635" y="66" text-anchor="middle">Buffer vào</text>
+      <text class="s" x="635" y="86" text-anchor="middle">input + weight, vài KB</text>
+
+      <rect class="npu" x="738" y="40" width="206" height="64" rx="6"/>
+      <text class="t" x="841" y="66" text-anchor="middle">Mảng MAC int8</text>
+      <text class="s" x="841" y="86" text-anchor="middle">conv · FC + đường depthwise</text>
+
+      <line class="ln" x1="176" y1="72" x2="202" y2="72" marker-end="url(#f3)"/>
+      <line class="ln" x1="354" y1="72" x2="380" y2="72" marker-end="url(#f3)"/>
+      <line class="ln" x1="532" y1="72" x2="558" y2="72" marker-end="url(#f3)"/>
+      <line class="ln" x1="710" y1="72" x2="736" y2="72" marker-end="url(#f3)"/>
+
+      <rect class="box" x="738" y="160" width="206" height="64" rx="6"/>
+      <text class="t" x="841" y="186" text-anchor="middle">Epilogue</text>
+      <text class="s" x="841" y="206" text-anchor="middle">bias → requant → +zp → clamp</text>
+
+      <rect class="box" x="560" y="160" width="150" height="64" rx="6"/>
+      <text class="t" x="635" y="186" text-anchor="middle">Buffer ra</text>
+      <text class="s" x="635" y="206" text-anchor="middle">+ ADD residual · pool</text>
+
+      <line class="ln" x1="841" y1="104" x2="841" y2="158" marker-end="url(#f3)"/>
+      <text class="s" x="849" y="136">int32 acc</text>
+      <line class="ln" x1="738" y1="192" x2="712" y2="192" marker-end="url(#f3)"/>
+      <line class="ln" x1="560" y1="192" x2="534" y2="192" marker-end="url(#f3)"/>
+
+      <rect class="bar" x="16" y="282" width="928" height="44" rx="6"/>
+      <text class="t" x="480" y="309" text-anchor="middle">DRAM 1 MB qua cổng B: weights · activations · outputs</text>
+
+      <line class="ln acc" x1="482" y1="280" x2="482" y2="226" marker-end="url(#f3x)"/>
+      <text class="a" x="490" y="258">đọc</text>
+      <line class="ln acc" x1="432" y1="226" x2="432" y2="280" marker-end="url(#f3x)"/>
+      <text class="a" x="424" y="258" text-anchor="end">ghi</text>
+    </svg>
+    </div>
+    <figcaption>Requantize trong epilogue phải khớp từng bit với <code>MultiplyByQuantizedMultiplier</code> của <code>kernels.c</code>. Bộ sinh địa chỉ nên tự điền zero-point ("pad ảo") để bỏ hẳn các op PAD. Diện tích dưới 1 mm² không bị trừ điểm, nhưng một macro SRAM 1 KB đã chiếm 0.19 mm², nên weight phải được stream từ DRAM chứ không giữ trên chip.</figcaption>
+  </figure>
+</div>
