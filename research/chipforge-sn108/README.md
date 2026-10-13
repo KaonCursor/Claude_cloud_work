@@ -2,6 +2,7 @@
 
 > Ngày nghiên cứu: 13/10/2026  
 > Nguồn chính: mã nguồn [TatsuProject/ChipForge_SN108](https://github.com/TatsuProject/ChipForge_SN108) (commit `4b8de64`, 10/10/2026), các repo liên quan trong tổ chức [TatsuProject](https://github.com/TatsuProject), tài liệu *ChipForge – Technical Architecture v1.0* (10/2025, có trong repo), cùng các bài báo/bài PR trên web.  
+> 👉 **Dành cho miner:** xem hướng dẫn chi tiết [MINER_GUIDE.md](MINER_GUIDE.md).  
 > **Giới hạn:** môi trường nghiên cứu không truy cập được `chipforge.io`, `api.chipforge.io`, taostats hay RPC của chain. Vì vậy báo cáo **không có số liệu on-chain trực tiếp** (giá alpha, emission, số UID, stake của validator). Thông tin về website lấy gián tiếp qua kết quả tìm kiếm. Các mục có dấu ⚠️ là chưa xác minh được.
 
 ---
